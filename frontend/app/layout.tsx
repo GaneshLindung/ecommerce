@@ -1,8 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { ReactNode } from 'react';
-import { CartProvider } from '@/context/CartContext';
-import Link from 'next/link';
+import Providers from './providers';
+import { Header } from './components/Header';
 
 function HomeIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -53,36 +53,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <CartProvider>
-          <header className="flex items-center justify-between px-6 py-4 border-b">
-            <Link href="/" className="font-bold text-xl">
-              MyShop
-            </Link>
-            <nav className="flex items-center gap-4">
-              <Link
-                href="/"
-                className="inline-flex items-center justify-center rounded p-2 hover:bg-gray-100"
-                aria-label="Beranda"
-              >
-                <HomeIcon className="h-5 w-5" />
-              </Link>
-              <Link
-                href="/cart"
-                className="inline-flex items-center justify-center rounded p-2 hover:bg-gray-100"
-                aria-label="Keranjang"
-              >
-                <CartIcon className="h-5 w-5" />
-              </Link>
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center rounded px-3 py-2 bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Daftar
-              </Link>
-            </nav>
-          </header>
+        <Providers>
+          <Header />
           <main className="max-w-5xl mx-auto p-6">{children}</main>
-        </CartProvider>
+        </Providers>
       </body>
     </html>
   );

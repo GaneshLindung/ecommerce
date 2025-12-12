@@ -3,32 +3,24 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
+  Unique,
 } from 'typeorm';
 
 @Entity()
+@Unique(['email'])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ unique: true })
-  email: string;
 
   @Column()
   name: string;
 
   @Column()
-  passwordHash: string;
+  email: string;
 
-  @Column({ default: false })
-  isVerified: boolean;
-
-  @Column({ nullable: true })
-  verificationToken: string | null;
+  @Column()
+  password: string;
 
   @CreateDateColumn()
   createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }
