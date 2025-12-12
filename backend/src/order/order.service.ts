@@ -36,6 +36,13 @@ export class OrderService {
     const order = new Order();
     order.customerName = dto.customerName;
     order.customerEmail = dto.customerEmail;
+    order.customerPhone = dto.customerPhone;
+    order.addressLine = dto.addressLine;
+    order.city = dto.city;
+    order.postalCode = dto.postalCode;
+    order.shippingMethod = dto.shippingMethod;
+    order.paymentMethod = dto.paymentMethod;
+    order.notes = dto.notes;
     order.status = 'pending';
 
     order.items = dto.items.map((i) => {

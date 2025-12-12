@@ -2,6 +2,7 @@ import {
   IsArray,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsNumber,
   IsString,
   Min,
@@ -33,6 +34,34 @@ export class CreateOrderDto {
 
   @IsEmail()
   customerEmail: string;
+
+  @IsString()
+  @IsNotEmpty()
+  customerPhone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  addressLine: string;
+
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  postalCode: string;
+
+  @IsString()
+  @IsNotEmpty()
+  shippingMethod: string;
+
+  @IsString()
+  @IsNotEmpty()
+  paymentMethod: string;
+
+  @IsString()
+  @IsOptional()
+  notes?: string;
 
   @IsArray()
   @ValidateNested({ each: true })

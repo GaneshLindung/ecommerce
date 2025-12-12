@@ -6,6 +6,8 @@ import { OrderModule } from './order/order.module';
 import { Product } from './product/product.entity';
 import { Order } from './order/order.entity';
 import { OrderItem } from './order/order-item.entity';
+import { AuthModule } from './auth/auth.module';
+import { User } from './auth/user.entity';
 
 @Module({
   imports: [
@@ -18,12 +20,13 @@ import { OrderItem } from './order/order-item.entity';
         username: process.env.DB_USERNAME,
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        entities: [Product, Order, OrderItem],
+        entities: [Product, Order, OrderItem, User],
         synchronize: true, // Hanya untuk dev! Jangan di production.
       }),
     }),
     ProductModule,
     OrderModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

@@ -2,6 +2,7 @@ import { apiGet } from '@/lib/api';
 import { Product } from '@/types';
 import Link from 'next/link';
 import { AddToCartButton } from './components/AddToCartButton';
+import { ProfileCard } from './components/ProfileCard';
 
 async function getProducts(): Promise<Product[]> {
   return apiGet<Product[]>('/products');
@@ -12,6 +13,7 @@ export default async function HomePage() {
 
   return (
     <div>
+      <ProfileCard />
       <h1 className="text-2xl font-bold mb-4">Products</h1>
       {products.length === 0 && <p>No products yet.</p>}
 

@@ -21,5 +21,12 @@ export interface OrderItemPayload {
 export interface OrderPayload {
   customerName: string;
   customerEmail: string;
+  customerPhone: string;
+  addressLine: string;
+  city: string;
+  postalCode: string;
+  shippingMethod: string;
+  paymentMethod: string;
+  notes?: string;
   items: OrderItemPayload[];
 }

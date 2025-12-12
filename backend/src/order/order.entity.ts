@@ -18,6 +18,27 @@ export class Order {
   @Column()
   customerEmail: string;
 
+  @Column()
+  customerPhone: string;
+
+  @Column()
+  addressLine: string;
+
+  @Column()
+  city: string;
+
+  @Column()
+  postalCode: string;
+
+  @Column()
+  shippingMethod: string;
+
+  @Column()
+  paymentMethod: string;
+
+  @Column({ nullable: true })
+  notes?: string;
+
   @Column({ default: 'pending' })
   status: string;
 
