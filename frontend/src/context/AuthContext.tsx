@@ -65,6 +65,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AccountRecord | null>(() => loadSession());
   const [pendingVerificationEmail, setPendingVerificationEmail] =
     useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    // Safe hydration marker to avoid mismatches when client-only data (localStorage) becomes available.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -159,14 +166,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
-      user,
+      user: isHydrated ? user : null,
       pendingVerificationEmail,
       register,
       verifyEmail,
       login,
       logout,
     }),
-    [login, logout, pendingVerificationEmail, register, user, verifyEmail],
+    [
+      isHydrated,
+      login,
+      logout,
+      pendingVerificationEmail,
+      register,
+      user,
+      verifyEmail,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
