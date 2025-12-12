@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { apiPost } from '@/lib/api';
+import { CartIcon, SparkleIcon } from '../components/Icons';
 
 const shippingOptions = [
   { value: 'regular', label: 'Reguler (3-5 hari)' },
@@ -29,6 +30,7 @@ export default function CartPage() {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const totalItems = useMemo(
     () => items.reduce((count, item) => count + item.quantity, 0),
@@ -60,6 +62,7 @@ export default function CartPage() {
     try {
       setLoading(true);
       setSuccessMsg('');
+      setErrorMsg('');
       await apiPost('/orders', payload);
       clearCart();
       setSuccessMsg('Order berhasil dibuat! Kami telah mengirim detail ke email Anda.');
@@ -74,7 +77,7 @@ export default function CartPage() {
       setNotes('');
     } catch (err) {
       console.error(err);
-      alert('Gagal membuat order');
+      setErrorMsg('Gagal membuat order. Coba lagi dalam beberapa saat.');
     } finally {
       setLoading(false);
     }
@@ -82,29 +85,36 @@ export default function CartPage() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl bg-gradient-to-r from-sky-50 via-white to-emerald-50 p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-800">Checkout</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Lengkapi data pelanggan dan pilih metode pengiriman serta pembayaran
-          favorit Anda.
-        </p>
+      <div className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-xl backdrop-blur">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-700">
+              <CartIcon className="h-4 w-4" />
+              checkout nyaman
+            </div>
+            <h1 className="text-3xl font-black text-slate-900">Selesaikan pesanan Anda</h1>
+            <p className="text-sm text-slate-600">
+              Pastikan data pengiriman akurat agar kurir dapat mengantarkan paket tepat waktu.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500/90 to-emerald-500/90 px-4 py-3 text-sm font-semibold text-white shadow-lg">
+            <SparkleIcon className="h-4 w-4" />
+            {totalItems} item · Rp {Number(totalPrice).toLocaleString('id-ID')}
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-xl border bg-white/70 p-4 shadow-sm backdrop-blur">
+        <div className="space-y-4 lg:col-span-2">
+          <div className="rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm backdrop-blur">
             <div className="flex items-center justify-between pb-3">
               <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Ringkasan Keranjang
-                </p>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Ringkasan Keranjang</p>
                 <h2 className="text-lg font-semibold text-gray-800">
                   {totalItems} item · Rp {Number(totalPrice).toLocaleString('id-ID')}
                 </h2>
               </div>
-              <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
-                Aktif
-              </span>
+              <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">Aktif</span>
             </div>
 
             {items.length === 0 ? (
@@ -126,7 +136,7 @@ export default function CartPage() {
                     </div>
                     <button
                       onClick={() => removeFromCart(item.id)}
-                      className="text-xs font-semibold text-red-600 hover:text-red-700"
+                      className="text-xs font-semibold text-red-600 transition hover:text-red-700"
                     >
                       Hapus
                     </button>
@@ -139,16 +149,12 @@ export default function CartPage() {
           <form
             id="checkout-form"
             onSubmit={handleCheckout}
-            className="space-y-4 rounded-xl border bg-white/70 p-4 shadow-sm backdrop-blur"
+            className="space-y-4 rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm backdrop-blur"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">
-                  Data Pelanggan
-                </p>
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Informasi kontak & alamat
-                </h2>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Data Pelanggan</p>
+                <h2 className="text-lg font-semibold text-gray-800">Informasi kontak & alamat</h2>
               </div>
               <span className="text-xs text-gray-500">Wajib diisi *</span>
             </div>
@@ -198,22 +204,19 @@ export default function CartPage() {
                   required
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <div className="space-y-1 md:col-span-2">
                 <label className="text-sm font-medium text-gray-700">Alamat Lengkap</label>
-                <input
-                  type="text"
-                  placeholder="Nama jalan, nomor rumah, patokan"
+                <textarea
+                  placeholder="Nama jalan, nomor rumah, patokan penting"
                   className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                  rows={2}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   required
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Kota/Kabupaten</label>
+                <label className="text-sm font-medium text-gray-700">Kota</label>
                 <input
                   type="text"
                   placeholder="contoh: Jakarta"
@@ -224,12 +227,24 @@ export default function CartPage() {
                 />
               </div>
               <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">Catatan untuk kurir</label>
+                <input
+                  type="text"
+                  placeholder="Opsional"
+                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Metode Pengiriman</label>
                 <select
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
                   value={shippingMethod}
                   onChange={(e) => setShippingMethod(e.target.value)}
-                  required
+                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
                 >
                   {shippingOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -241,10 +256,9 @@ export default function CartPage() {
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Metode Pembayaran</label>
                 <select
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  required
+                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
                 >
                   {paymentOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -253,62 +267,70 @@ export default function CartPage() {
                   ))}
                 </select>
               </div>
-              <div className="space-y-1 md:col-span-2">
-                <label className="text-sm font-medium text-gray-700">Catatan untuk pesanan</label>
-                <textarea
-                  placeholder="Tuliskan permintaan khusus (opsional)"
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  rows={3}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                <p className="font-semibold">Aman & terlindungi</p>
+                <p>Data Anda dienkripsi dan hanya digunakan untuk memproses pesanan.</p>
+              </div>
+              <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+                <p className="font-semibold">Dukungan pelanggan</p>
+                <p>Kami siap membantu jika ada kendala pada pesanan Anda.</p>
               </div>
             </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="leading-tight text-sm text-gray-600">
+                <p className="font-semibold text-gray-800">Total</p>
+                <p>Rp {Number(totalPrice).toLocaleString('id-ID')}</p>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                {errorMsg && (
+                  <p className="flex-1 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" aria-live="assertive">
+                    {errorMsg}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={loading || items.length === 0}
+                  className="flex-1 rounded-lg bg-gradient-to-r from-sky-500 to-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:from-sky-600 hover:to-emerald-600 disabled:opacity-60"
+                >
+                  {loading ? 'Memproses...' : 'Buat Pesanan'}
+                </button>
+              </div>
+            </div>
+
+            {successMsg && (
+              <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800" aria-live="polite">
+                {successMsg}
+              </p>
+            )}
           </form>
         </div>
 
-        <div className="space-y-3 rounded-xl border bg-white/70 p-4 shadow-sm backdrop-blur">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-gray-500">
-                Pembayaran
-              </p>
-              <h2 className="text-lg font-semibold text-gray-800">Ringkasan akhir</h2>
-            </div>
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-              Aman & terjamin
-            </span>
-          </div>
-
-          <div className="space-y-2 text-sm text-gray-700">
-            <div className="flex justify-between">
-              <span>Total produk</span>
-              <span>{totalItems} item</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>Rp {Number(totalPrice).toLocaleString('id-ID')}</span>
-            </div>
-            <div className="flex justify-between text-xs text-gray-500">
-              <span>Biaya pengiriman</span>
-              <span>Ditentukan oleh metode pengiriman</span>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            form="checkout-form"
-            disabled={loading || items.length === 0}
-            className="w-full rounded-lg bg-gradient-to-r from-sky-500 to-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:from-sky-600 hover:to-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? 'Memproses pesanan...' : 'Buat Pesanan'}
-          </button>
-
-          {successMsg && (
-            <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-              {successMsg}
+        <div className="space-y-3">
+          <div className="rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm backdrop-blur">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Keamanan</p>
+            <h3 className="text-lg font-semibold text-gray-800">Pembayaran aman & terjamin</h3>
+            <p className="text-sm text-gray-600">
+              Transaksi dilindungi protokol keamanan terbaru dengan beberapa opsi pembayaran tepercaya.
             </p>
-          )}
+          </div>
+          <div className="rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm backdrop-blur">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Pengiriman</p>
+            <h3 className="text-lg font-semibold text-gray-800">Kirim cepat, tracking real-time</h3>
+            <p className="text-sm text-gray-600">
+              Semua pesanan mendapatkan nomor resi yang dapat diikuti langsung dari halaman akun Anda.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm backdrop-blur">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Dukungan</p>
+            <h3 className="text-lg font-semibold text-gray-800">Tim bantuan siap 24/7</h3>
+            <p className="text-sm text-gray-600">
+              Hubungi kami kapan saja jika ada kendala pada pesanan atau pembayaran Anda.
+            </p>
+          </div>
         </div>
       </div>
     </div>
