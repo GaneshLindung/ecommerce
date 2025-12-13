@@ -13,7 +13,7 @@ import {
 interface AccountRecord {
   name: string;
   email: string;
-  password: string;
+  password?: string;
   verified: boolean;
 }
 
@@ -23,6 +23,7 @@ interface AuthContextValue {
   register: (name: string, email: string, password: string) => Promise<void>;
   verifyEmail: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  setSessionUser: (user: AccountRecord | null) => void;
   logout: () => void;
 }
 
@@ -151,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('Akun belum diverifikasi. Silakan cek email Anda.');
       }
 
-      if (account.password !== password) {
+      if (!account.password || account.password !== password) {
         throw new Error('Password tidak sesuai.');
       }
 
@@ -159,6 +160,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     [accounts],
   );
+
+  const setSessionUser = useCallback((account: AccountRecord | null) => {
+    setUser(account);
+  }, []);
 
   const logout = useCallback(() => {
     setUser(null);
@@ -171,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       verifyEmail,
       login,
+      setSessionUser,
       logout,
     }),
     [
@@ -179,6 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       pendingVerificationEmail,
       register,
+      setSessionUser,
       user,
       verifyEmail,
     ],

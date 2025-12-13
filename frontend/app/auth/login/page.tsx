@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { apiPost } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import { CartIcon, SparkleIcon } from '../../components/Icons';
 
 export default function LoginPage() {
@@ -11,6 +13,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const router = useRouter();
+  const { setSessionUser } = useAuth();
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -18,10 +22,19 @@ export default function LoginPage() {
       setLoading(true);
       setMessage('');
       setError('');
-      await apiPost('/auth/login', { email, password });
+      const data = await apiPost<{ user: { name: string; email: string } }>(
+        '/auth/login',
+        { email, password },
+      );
+      setSessionUser({
+        name: data.user.name,
+        email: data.user.email,
+        verified: true,
+      });
       setMessage('Login berhasil! Anda akan dialihkan.');
       setEmail('');
       setPassword('');
+      router.push('/');
     } catch (err) {
       console.error(err);
       setError('Email atau password salah. Silakan coba lagi.');
