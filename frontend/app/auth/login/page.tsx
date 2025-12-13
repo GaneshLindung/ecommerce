@@ -36,8 +36,12 @@ export default function LoginPage() {
       setPassword('');
       router.push('/');
     } catch (err) {
-      console.error(err);
-      setError('Email atau password salah. Silakan coba lagi.');
+      const error = err as Error & { status?: number };
+      if (error?.status === 401) {
+        setError('Email atau password salah. Silakan coba lagi.');
+        return;
+      }
+      setError(error?.message || 'Gagal masuk. Silakan coba lagi nanti.');
     } finally {
       setLoading(false);
     }
@@ -57,6 +61,10 @@ export default function LoginPage() {
           </p>
         </div>
         <div className="space-y-2 text-sm text-white/80">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-white" />
+            Metode pembayaran aman dan terpercaya
+          </div>
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-white" />
             Metode pembayaran aman dan terpercaya

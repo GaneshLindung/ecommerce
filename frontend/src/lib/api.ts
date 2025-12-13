@@ -18,6 +18,18 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+
+  const data = await res
+    .json()
+    .catch(() => null as unknown as T | { message?: string });
+
+  if (!res.ok) {
+    const error: Error & { status?: number } = new Error(
+      (data as { message?: string } | null)?.message || `API error: ${res.status}`,
+    );
+    error.status = res.status;
+    throw error;
+  }
+
+  return data as T;
 }
