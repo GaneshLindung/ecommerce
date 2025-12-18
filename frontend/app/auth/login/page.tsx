@@ -7,6 +7,15 @@ import { apiPost } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { CartIcon, SparkleIcon } from '../../components/Icons';
 
+type LoginResponse = {
+  user: {
+    name: string;
+    email: string;
+  };
+  accessToken: string;
+  message?: string;
+};
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,15 +31,19 @@ export default function LoginPage() {
       setLoading(true);
       setMessage('');
       setError('');
-      const data = await apiPost<{ user: { name: string; email: string } }>(
-        '/auth/login',
-        { email, password },
-      );
+
+      const data = await apiPost<LoginResponse>('/auth/login', { email, password });
+
+      // ✅ simpan token JWT agar bisa dipakai untuk /auth/me dan endpoint protected lainnya
+      window.localStorage.setItem('auth-token', data.accessToken);
+
+      // ✅ simpan user ke context (sesuai struktur kamu)
       setSessionUser({
         name: data.user.name,
         email: data.user.email,
         verified: true,
       });
+
       setMessage('Login berhasil! Anda akan dialihkan.');
       setEmail('');
       setPassword('');
@@ -45,6 +58,20 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    setError('');
+    setMessage('');
+
+    const api = process.env.NEXT_PUBLIC_API_URL;
+    if (!api) {
+      setError('NEXT_PUBLIC_API_URL belum diset. Cek frontend/.env.local');
+      return;
+    }
+
+    // ✅ mulai OAuth flow
+    window.location.href = `${api}/auth/google`;
   };
 
   return (
@@ -91,6 +118,22 @@ export default function LoginPage() {
             <CartIcon className="h-4 w-4" />
             Pengguna prioritas
           </span>
+        </div>
+
+        {/* ✅ tombol login google */}
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50 disabled:opacity-60"
+        >
+          Masuk dengan Google
+        </button>
+
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-gray-200" />
+          <span className="text-xs text-gray-400">atau</span>
+          <div className="h-px flex-1 bg-gray-200" />
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
