@@ -13,11 +13,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  async validate(
-    _accessToken: string,
-    _refreshToken: string,
-    profile: Profile,
-  ) {
+  // ✅ Ini cara yang benar untuk menambah prompt di URL authorize Google
+  authorizationParams(): Record<string, string> {
+    return {
+      prompt: 'select_account',
+      // Kalau mau selalu consent juga, pakai ini:
+      // prompt: 'consent select_account',
+    };
+  }
+
+  async validate(_accessToken: string, _refreshToken: string, profile: Profile) {
     const email = profile.emails?.[0]?.value ?? '';
     const name = profile.displayName ?? '';
     const googleId = profile.id;
