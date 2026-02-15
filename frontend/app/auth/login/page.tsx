@@ -125,8 +125,17 @@ export default function LoginPage() {
           type="button"
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50 disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50 disabled:opacity-60"
         >
+          <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+            <path
+              fill="#EA4335"
+              d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 3.9 1.5l2.7-2.6C16.9 3.4 14.7 2.5 12 2.5 6.8 2.5 2.5 6.8 2.5 12s4.3 9.5 9.5 9.5c5.5 0 9.2-3.9 9.2-9.3 0-.6-.1-1.1-.2-1.6H12Z"
+            />
+            <path fill="#34A853" d="M3.6 7.6l3.2 2.3c.9-2.6 2.9-3.9 5.2-3.9 1.9 0 3.2.8 3.9 1.5l2.7-2.6C16.9 3.4 14.7 2.5 12 2.5c-3.7 0-6.9 2.1-8.4 5.1Z" />
+            <path fill="#FBBC05" d="M2.5 12c0 1.5.4 2.9 1.1 4.1l3.7-2.9c-.2-.5-.3-1-.3-1.6s.1-1.1.3-1.6L3.6 7.6A9.4 9.4 0 0 0 2.5 12Z" />
+            <path fill="#4285F4" d="M12 21.5c2.6 0 4.8-.9 6.4-2.4l-3.1-2.5c-.8.6-1.8 1-3.3 1-2.3 0-4.3-1.5-5-3.6l-3.8 2.9c1.6 3.1 4.8 5.1 8.8 5.1Z" />
+          </svg>
           Masuk dengan Google
         </button>
 

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import { CartItem, Product } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 interface CartContextValue {
   items: CartItem[];
@@ -16,36 +17,43 @@ const CART_STORAGE_KEY = 'demo-cart-items';
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
-function loadCartItems(): CartItem[] {
-  if (typeof window === 'undefined') return [];
-
-  const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-  if (!raw) return [];
-
-  try {
-    const parsed = JSON.parse(raw) as CartItem[];
-    if (!Array.isArray(parsed)) return [];
-    return parsed;
-  } catch (err) {
-    console.warn('Failed to parse cart items', err);
-    return [];
-  }
+function getStorageKey(userEmail?: string | null) {
+  const identityKey = userEmail?.trim().toLowerCase() || 'guest';
+  return `${CART_STORAGE_KEY}:${identityKey}`;
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
+  const storageKey = useMemo(() => getStorageKey(user?.email), [user?.email]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setItems(loadCartItems());
+    if (typeof window === 'undefined') return;
+
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setItems([]);
+      setIsHydrated(true);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as CartItem[];
+      setItems(Array.isArray(parsed) ? parsed : []);
+    } catch (err) {
+      console.warn('Failed to parse cart items', err);
+      setItems([]);
+    }
+
     setIsHydrated(true);
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     if (!isHydrated || typeof window === 'undefined') return;
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-  }, [isHydrated, items]);
+    window.localStorage.setItem(storageKey, JSON.stringify(items));
+  }, [isHydrated, items, storageKey]);
 
   const addToCart = (product: Product) => {
     setItems((prev) => {
