@@ -3,7 +3,8 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { apiPost } from '@/lib/api';
-import { CartIcon, SparkleIcon } from '../components/Icons';
+import { usePurchaseHistory } from '@/context/PurchaseHistoryContext';
+import { BankIcon, CartIcon, CashIcon, SparkleIcon, WalletIcon } from '../components/Icons';
 
 const shippingOptions = [
   { value: 'regular', label: 'Reguler (3-5 hari)' },
@@ -12,13 +13,14 @@ const shippingOptions = [
 ];
 
 const paymentOptions = [
-  { value: 'bank-transfer', label: 'Transfer Bank' },
-  { value: 'ewallet', label: 'E-Wallet' },
-  { value: 'cod', label: 'Bayar di Tempat (COD)' },
+  { value: 'bank-transfer', label: 'Transfer Bank', Icon: BankIcon },
+  { value: 'ewallet', label: 'E-Wallet', Icon: WalletIcon },
+  { value: 'cash', label: 'Tunai', Icon: CashIcon },
 ];
 
 export default function CartPage() {
   const { items, totalPrice, removeFromCart, clearCart } = useCart();
+  const { addPurchase } = usePurchaseHistory();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -64,8 +66,24 @@ export default function CartPage() {
       setSuccessMsg('');
       setErrorMsg('');
       await apiPost('/orders', payload);
+      addPurchase({
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        customerName: name,
+        customerEmail: email,
+        customerPhone: phone,
+        addressLine: address,
+        city,
+        postalCode,
+        shippingMethod,
+        paymentMethod,
+        notes: notes || undefined,
+        items: items.map((item) => ({ ...item })),
+        totalPrice,
+        totalItems,
+      });
       clearCart();
-      setSuccessMsg('Order berhasil dibuat! Kami telah mengirim detail ke email Anda.');
+      setSuccessMsg('Order berhasil dibuat! Riwayat pembelian sudah tersimpan.');
       setName('');
       setEmail('');
       setPhone('');
@@ -152,89 +170,41 @@ export default function CartPage() {
             className="space-y-4 rounded-2xl border border-slate-200/70 bg-white/90 p-4 shadow-sm backdrop-blur"
           >
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">Data Pelanggan</p>
-                <h2 className="text-lg font-semibold text-gray-800">Informasi kontak & alamat</h2>
-              </div>
-              <span className="text-xs text-gray-500">Wajib diisi *</span>
+              <h2 className="text-lg font-semibold text-gray-800">Data Pengiriman</h2>
+              <span className="text-xs text-gray-500">Lengkapi sebelum checkout</span>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Nama Lengkap</label>
-                <input
-                  type="text"
-                  placeholder="Masukkan nama"
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
+                <input type="text" className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100" value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Email</label>
-                <input
-                  type="email"
-                  placeholder="nama@email.com"
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <input type="email" className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Nomor Telepon</label>
-                <input
-                  type="tel"
-                  placeholder="08xxxxxxxxxx"
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                />
+                <input type="tel" className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100" value={phone} onChange={(e) => setPhone(e.target.value)} required />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Kode Pos</label>
-                <input
-                  type="text"
-                  placeholder="contoh: 12345"
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  value={postalCode}
-                  onChange={(e) => setPostalCode(e.target.value)}
-                  required
-                />
+                <input type="text" className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required />
               </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1 md:col-span-2">
                 <label className="text-sm font-medium text-gray-700">Alamat Lengkap</label>
-                <textarea
-                  placeholder="Nama jalan, nomor rumah, patokan penting"
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  rows={2}
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  required
-                />
+                <input type="text" placeholder="Nama jalan, nomor rumah, kecamatan" className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100" value={address} onChange={(e) => setAddress(e.target.value)} required />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Kota</label>
-                <input
-                  type="text"
-                  placeholder="contoh: Jakarta"
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  required
-                />
+                <input type="text" placeholder="contoh: Jakarta" className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100" value={city} onChange={(e) => setCity(e.target.value)} required />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">Catatan untuk kurir</label>
-                <input
-                  type="text"
-                  placeholder="Opsional"
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
+                <input type="text" placeholder="Opsional" className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100" value={notes} onChange={(e) => setNotes(e.target.value)} />
               </div>
             </div>
 
@@ -253,30 +223,17 @@ export default function CartPage() {
                   ))}
                 </select>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Metode Pembayaran</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                >
-                  {paymentOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
+                <div className="grid gap-2">
+                  {paymentOptions.map(({ value, label, Icon }) => (
+                    <label key={value} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-sm transition ${paymentMethod === value ? 'border-sky-300 bg-sky-50 text-sky-800' : 'border-slate-200 bg-white text-slate-700 hover:border-sky-200'}`}>
+                      <input type="radio" name="paymentMethod" value={value} checked={paymentMethod === value} onChange={(e) => setPaymentMethod(e.target.value)} className="sr-only" />
+                      <Icon className="h-5 w-5" />
+                      <span className="font-medium">{label}</span>
+                    </label>
                   ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                <p className="font-semibold">Aman & terlindungi</p>
-                <p>Data Anda dienkripsi dan hanya digunakan untuk memproses pesanan.</p>
-              </div>
-              <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-800">
-                <p className="font-semibold">Dukungan pelanggan</p>
-                <p>Kami siap membantu jika ada kendala pada pesanan Anda.</p>
+                </div>
               </div>
             </div>
 

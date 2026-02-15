@@ -30,3 +30,20 @@ export interface OrderPayload {
   notes?: string;
   items: OrderItemPayload[];
 }
+
+export interface PurchaseHistoryItem {
+  id: string;
+  createdAt: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  addressLine: string;
+  city: string;
+  postalCode: string;
+  shippingMethod: string;
+  paymentMethod: string;
+  notes?: string;
+  items: CartItem[];
+  totalPrice: number;
+  totalItems: number;
+}

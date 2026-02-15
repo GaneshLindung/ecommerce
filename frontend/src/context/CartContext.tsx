@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import { CartItem, Product } from '@/types';
 
 interface CartContextValue {
@@ -9,12 +9,43 @@ interface CartContextValue {
   removeFromCart: (productId: number) => void;
   clearCart: () => void;
   totalPrice: number;
+  isHydrated: boolean;
 }
+
+const CART_STORAGE_KEY = 'demo-cart-items';
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
 
+function loadCartItems(): CartItem[] {
+  if (typeof window === 'undefined') return [];
+
+  const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw) as CartItem[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch (err) {
+    console.warn('Failed to parse cart items', err);
+    return [];
+  }
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setItems(loadCartItems());
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated || typeof window === 'undefined') return;
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  }, [isHydrated, items]);
 
   const addToCart = (product: Product) => {
     setItems((prev) => {
@@ -34,14 +65,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setItems([]);
 
-  const totalPrice = items.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity,
-    0,
+  const totalPrice = useMemo(
+    () => items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0),
+    [items],
   );
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, removeFromCart, clearCart, totalPrice }}
+      value={{ items, addToCart, removeFromCart, clearCart, totalPrice, isHydrated }}
     >
       {children}
     </CartContext.Provider>

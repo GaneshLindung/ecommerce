@@ -5,11 +5,13 @@ import { usePathname } from 'next/navigation';
 import { AuthButton } from './AuthButton';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
-import { CartIcon, HomeIcon, SparkleIcon } from './Icons';
+import { usePurchaseHistory } from '../../src/context/PurchaseHistoryContext';
+import { CartIcon, HistoryIcon, HomeIcon, SparkleIcon } from './Icons';
 
 export function Header() {
   const { user } = useAuth();
   const { items } = useCart();
+  const { history } = usePurchaseHistory();
   const pathname = usePathname();
 
   const initials = user?.name
@@ -54,6 +56,21 @@ export function Header() {
                 )}
               </div>
               <span className="sr-only">Cart</span>
+            </Link>
+            <Link
+              href="/purchase-history"
+              className={navLinkClass(pathname === '/purchase-history')}
+              aria-label="Riwayat Pembelian"
+            >
+              <div className="relative">
+                <HistoryIcon className="h-5 w-5" />
+                {history.length > 0 && (
+                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-sky-500 px-1 text-[10px] font-bold text-white shadow-sm">
+                    {history.length}
+                  </span>
+                )}
+              </div>
+              <span className="sr-only">Riwayat Pembelian</span>
             </Link>
           </nav>
         </div>
