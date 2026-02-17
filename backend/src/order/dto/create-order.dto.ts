@@ -1,9 +1,10 @@
 import {
   IsArray,
   IsEmail,
+  IsIn,
   IsNotEmpty,
-  IsOptional,
   IsNumber,
+  IsOptional,
   IsString,
   Min,
   ValidateNested,
@@ -57,7 +58,13 @@ export class CreateOrderDto {
 
   @IsString()
   @IsNotEmpty()
+  @IsIn(['bank-transfer', 'ewallet', 'cash'])
   paymentMethod: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['qris', 'gopay', 'shopeepay'])
+  paymentChannel?: string;
 
   @IsString()
   @IsOptional()

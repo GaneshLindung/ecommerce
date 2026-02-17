@@ -37,6 +37,24 @@ export class Order {
   paymentMethod: string;
 
   @Column({ nullable: true })
+  paymentChannel?: string;
+
+  @Column({ nullable: true })
+  paymentGateway?: string;
+
+  @Column({ nullable: true })
+  paymentReference?: string;
+
+  @Column({ nullable: true })
+  paymentToken?: string;
+
+  @Column({ nullable: true })
+  paymentRedirectUrl?: string;
+
+  @Column({ default: 'unpaid' })
+  paymentStatus: string;
+
+  @Column({ nullable: true })
   notes?: string;
 
   @Column({ default: 'pending' })

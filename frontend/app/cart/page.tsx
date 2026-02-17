@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import { OrderPayload } from '@/types';
 import { useCart } from '@/context/CartContext';
 import { apiPost } from '@/lib/api';
 import { usePurchaseHistory } from '@/context/PurchaseHistoryContext';
@@ -18,6 +19,12 @@ const paymentOptions = [
   { value: 'cash', label: 'Tunai', Icon: CashIcon },
 ];
 
+const ewalletProviders = [
+  { value: 'qris', label: 'QRIS (OVO, DANA, GoPay, ShopeePay)' },
+  { value: 'gopay', label: 'GoPay' },
+  { value: 'shopeepay', label: 'ShopeePay' },
+];
+
 export default function CartPage() {
   const { items, totalPrice, removeFromCart, clearCart } = useCart();
   const { addPurchase } = usePurchaseHistory();
@@ -30,8 +37,10 @@ export default function CartPage() {
   const [shippingMethod, setShippingMethod] = useState(shippingOptions[0].value);
   const [paymentMethod, setPaymentMethod] = useState(paymentOptions[0].value);
   const [notes, setNotes] = useState('');
+  const [paymentChannel, setPaymentChannel] = useState(ewalletProviders[0].value);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [paymentRedirectUrl, setPaymentRedirectUrl] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   const totalItems = useMemo(
@@ -43,7 +52,7 @@ export default function CartPage() {
     e.preventDefault();
     if (items.length === 0) return;
 
-    const payload = {
+    const payload: OrderPayload = {
       customerName: name,
       customerEmail: email,
       customerPhone: phone,
@@ -52,6 +61,7 @@ export default function CartPage() {
       postalCode,
       shippingMethod,
       paymentMethod,
+      paymentChannel: paymentMethod === 'ewallet' ? paymentChannel : undefined,
       notes: notes || undefined,
       items: items.map((item) => ({
         productId: item.id,
@@ -65,7 +75,8 @@ export default function CartPage() {
       setLoading(true);
       setSuccessMsg('');
       setErrorMsg('');
-      await apiPost('/orders', payload);
+      setPaymentRedirectUrl('');
+      const response = await apiPost<{ order: { paymentStatus?: string; paymentRedirectUrl?: string }; payment?: { redirectUrl?: string } }>('/orders', payload);
       addPurchase({
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
@@ -77,13 +88,24 @@ export default function CartPage() {
         postalCode,
         shippingMethod,
         paymentMethod,
+        paymentChannel: paymentMethod === 'ewallet' ? paymentChannel : undefined,
+        paymentStatus: response.order.paymentStatus,
+        paymentRedirectUrl: response.payment?.redirectUrl ?? response.order.paymentRedirectUrl,
         notes: notes || undefined,
         items: items.map((item) => ({ ...item })),
         totalPrice,
         totalItems,
       });
       clearCart();
-      setSuccessMsg('Order berhasil dibuat! Riwayat pembelian sudah tersimpan.');
+      const redirectUrl = response.payment?.redirectUrl ?? '';
+      if (redirectUrl) {
+        setPaymentRedirectUrl(redirectUrl);
+      }
+      setSuccessMsg(
+        redirectUrl
+          ? 'Order berhasil dibuat! Silakan lanjutkan pembayaran e-wallet pada halaman payment gateway.'
+          : 'Order berhasil dibuat! Riwayat pembelian sudah tersimpan.',
+      );
       setName('');
       setEmail('');
       setPhone('');
@@ -93,6 +115,7 @@ export default function CartPage() {
       setShippingMethod(shippingOptions[0].value);
       setPaymentMethod(paymentOptions[0].value);
       setNotes('');
+      setPaymentChannel(ewalletProviders[0].value);
     } catch (err) {
       console.error(err);
       setErrorMsg('Gagal membuat order. Coba lagi dalam beberapa saat.');
@@ -235,6 +258,23 @@ export default function CartPage() {
                   ))}
                 </div>
               </div>
+
+              {paymentMethod === 'ewallet' && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-700">Pilih E-Wallet</label>
+                  <select
+                    value={paymentChannel}
+                    onChange={(e) => setPaymentChannel(e.target.value)}
+                    className="w-full rounded-lg border px-3 py-2 text-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
+                  >
+                    {ewalletProviders.map((provider) => (
+                      <option key={provider.value} value={provider.value}>
+                        {provider.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -259,9 +299,21 @@ export default function CartPage() {
             </div>
 
             {successMsg && (
-              <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800" aria-live="polite">
-                {successMsg}
-              </p>
+              <div className="space-y-2" aria-live="polite">
+                <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                  {successMsg}
+                </p>
+                {paymentRedirectUrl && (
+                  <a
+                    href={paymentRedirectUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700"
+                  >
+                    Lanjutkan ke Pembayaran
+                  </a>
+                )}
+              </div>
             )}
           </form>
         </div>

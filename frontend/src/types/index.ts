@@ -27,6 +27,7 @@ export interface OrderPayload {
   postalCode: string;
   shippingMethod: string;
   paymentMethod: string;
+  paymentChannel?: string;
   notes?: string;
   items: OrderItemPayload[];
 }
@@ -42,6 +43,9 @@ export interface PurchaseHistoryItem {
   postalCode: string;
   shippingMethod: string;
   paymentMethod: string;
+  paymentChannel?: string;
+  paymentStatus?: string;
+  paymentRedirectUrl?: string;
   notes?: string;
   items: CartItem[];
   totalPrice: number;

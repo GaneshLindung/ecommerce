@@ -9,6 +9,22 @@ const paymentLabelMap: Record<string, string> = {
   cash: 'Tunai',
 };
 
+const ewalletLabelMap: Record<string, string> = {
+  qris: 'QRIS (OVO, DANA, GoPay, ShopeePay)',
+  gopay: 'GoPay',
+  shopeepay: 'ShopeePay',
+};
+
+const paymentStatusLabelMap: Record<string, string> = {
+  unpaid: 'Belum dibayar',
+  pending_manual: 'Menunggu konfirmasi kasir',
+  pending_payment: 'Menunggu pembayaran',
+  paid: 'Berhasil dibayar',
+  failed: 'Pembayaran gagal',
+  cancelled: 'Dibatalkan',
+  expired: 'Kadaluarsa',
+};
+
 const shippingLabelMap: Record<string, string> = {
   regular: 'Reguler (3-5 hari)',
   express: 'Express (1-2 hari)',
@@ -66,6 +82,24 @@ export default function PurchaseHistoryPage() {
                   <PaymentIcon method={order.paymentMethod} />
                   <span className="font-semibold">{paymentLabelMap[order.paymentMethod] ?? order.paymentMethod}</span>
                 </p>
+                {order.paymentMethod === 'ewallet' && order.paymentChannel && (
+                  <p><span className="font-semibold">Channel:</span> {ewalletLabelMap[order.paymentChannel] ?? order.paymentChannel}</p>
+                )}
+                {order.paymentStatus && (
+                  <p><span className="font-semibold">Status Pembayaran:</span> {paymentStatusLabelMap[order.paymentStatus] ?? order.paymentStatus}</p>
+                )}
+                {order.paymentRedirectUrl && (
+                  <p className="md:col-span-2">
+                    <a
+                      href={order.paymentRedirectUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex rounded-lg bg-sky-600 px-3 py-1.5 text-white hover:bg-sky-700"
+                    >
+                      Buka Halaman Pembayaran
+                    </a>
+                  </p>
+                )}
               </div>
 
               <ul className="mt-3 space-y-2">
